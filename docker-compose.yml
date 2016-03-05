@@ -1,0 +1,10 @@
+version: '2'
+services:
+  web:
+    build: ./services/web
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./services/web:/srv
+    command: ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+    stop_signal: SIGINT

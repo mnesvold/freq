@@ -1,0 +1,17 @@
+#!/bin/bash
+
+set -e
+
+DIR=$(dirname $0)
+ROOT=$(realpath $DIR/..)
+VENV=$ROOT/venv
+
+if [ -e $VENV ]
+then
+  echo "$VENV already exists; is your virtual environment already set up?"
+  exit 1
+fi
+
+virtualenv --python=python2 --prompt='(freq) ' $VENV
+source $VENV/bin/activate
+pip install docker-compose

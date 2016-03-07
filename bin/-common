@@ -1,0 +1,5 @@
+# Common variables for freq's utility scripts
+
+BIN=$(dirname $0)
+ROOT=$(realpath $BIN/..)
+VENV=$ROOT/venv

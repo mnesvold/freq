@@ -2,9 +2,7 @@
 
 set -e
 
-DIR=$(dirname $0)
-ROOT=$(realpath $DIR/..)
-VENV=$ROOT/venv
+source $(dirname $0)/-common
 
 if [ -e $VENV ]
 then

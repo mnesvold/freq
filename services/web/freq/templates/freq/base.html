@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Feature Requests | {% block title %}{% endblock %}</title>
+  </head>
+  <body>
+    <nav>
+      <ul>
+        <li><a href="{% url 'home' %}">Home</a></li>
+        {% if user.is_authenticated %}
+          <li>Logged in as {{ user.username }}.</li>
+          {% if user.is_staff %}
+            <li><a href="{% url 'admin:index' %}">Admin site</a></li>
+          {% endif %}
+          <li><a href="{% url 'logout' %}">Log out</a></li>
+        {% else %}
+          <li><a href="{% url 'login' %}">Log in</a></li>
+        {% endif %}
+      </ul>
+    </nav>
+    {% block content %}{% endblock %}
+  </body>
+</html>

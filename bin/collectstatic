@@ -1,0 +1,12 @@
+#!/bin/bash
+
+set -e
+
+DIR=$(dirname $0)
+ROOT=$(realpath $DIR/..)
+VENV=$ROOT/venv
+
+cd $ROOT
+source $VENV/bin/activate
+
+docker-compose run --rm web python manage.py collectstatic

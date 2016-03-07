@@ -1,10 +1,17 @@
 version: '2'
 services:
+  frontend:
+    build: ./services/frontend
+    ports:
+      - "8000:80"
+    volumes:
+      - ./services/frontend/www:/usr/share/nginx/html
   web:
     build: ./services/web
     ports:
-      - "8000:8000"
+      - "7500:7500"
     volumes:
       - ./services/web:/srv
-    command: ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+      - ./services/frontend/www:/srv/www
+    command: ["gunicorn", "-w", "4", "-b", "0.0.0.0:7500", "freq_demo.wsgi"]
     stop_signal: SIGINT

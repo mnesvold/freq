@@ -1,0 +1,15 @@
+#!/bin/bash
+
+set -e
+
+source $(dirname $0)/-common
+
+print_error()
+{
+  echo 'The run-tests script needs the containers to be up and running.'
+  echo 'Run `docker-compose up -d` and then run this script again.'
+  exit 1
+}
+
+docker exec -i freq_frontend_1 nginx -t || print_error
+docker exec -i freq_web_1 python manage.py test || print_error

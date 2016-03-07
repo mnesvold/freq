@@ -1,17 +1,25 @@
 from django.core.validators import MinValueValidator
 from django.db import models
 
+__all__ = ('Client', 'FeatureRequest', 'ProductArea')
+
 class Client(models.Model):
     title = models.CharField(max_length=128, unique=True)
 
     class Meta:
         ordering = ('title',)
 
+    def __str__(self):
+        return self.title
+
 class ProductArea(models.Model):
     title = models.CharField(max_length=64, unique=True)
 
     class Meta:
         ordering = ('title',)
+
+    def __str__(self):
+        return self.title
 
 class FeatureRequest(models.Model):
     title = models.CharField(max_length=128)
@@ -25,3 +33,6 @@ class FeatureRequest(models.Model):
     class Meta:
         ordering = ('priority', 'client')
         unique_together = ('client', 'priority')
+
+    def __str__(self):
+        return self.title

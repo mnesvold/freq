@@ -11,5 +11,6 @@ print_error()
   exit 1
 }
 
-docker exec -i freq_frontend_1 nginx -t || print_error
-docker exec -i freq_web_1 python manage.py test || print_error
+docker exec -i freq_frontend_1 true || print_error
+docker exec -i freq_frontend_1 nginx -t
+docker exec -i freq_web_1 python manage.py test

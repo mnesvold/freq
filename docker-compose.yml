@@ -6,6 +6,8 @@ services:
       - "8000:80"
     volumes:
       - ./services/frontend/www:/usr/share/nginx/html
+    depends_on:
+      - web
   web:
     build: ./services/web
     ports:

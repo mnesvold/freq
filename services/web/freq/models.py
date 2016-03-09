@@ -1,5 +1,6 @@
 from django.core.validators import MinValueValidator
-from django.db import models
+from django.db import models, transaction
+from django.db.models import F
 
 __all__ = ('Client', 'FeatureRequest', 'ProductArea')
 
@@ -32,7 +33,44 @@ class FeatureRequest(models.Model):
 
     class Meta:
         ordering = ('priority', 'client')
-        unique_together = ('client', 'priority')
+#       This uniqueness constraint is *NOT* enforced at the database level!
+#       Asking the database to enforce this constraint seems to break the bulk
+#       updates on `priority` when shifting records around.
+#       unique_together = ('client', 'priority')
 
     def __str__(self):
         return self.title
+
+    def save(self, *args, **kwargs):
+        try:
+            old_priority = (FeatureRequest.objects
+                    .only('priority')
+                    .get(pk=self.pk)
+                    .priority)
+        except FeatureRequest.DoesNotExist:
+            old_priority = None
+        priority = self.priority
+        self.priority = 0
+
+        with transaction.atomic():
+            super().save(*args, **kwargs)
+            self.refresh_from_db()
+
+            conditions = {
+                'client': self.client,
+                'priority__gte': priority
+            }
+            if old_priority is None:
+                delta = 1
+            elif old_priority > priority:
+                conditions['priority__lte'] = old_priority
+                delta = 1
+            else:
+                conditions['priority__lte'] = conditions['priority__gte']
+                conditions['priority__gte'] = old_priority
+                delta = -1
+            shifters = FeatureRequest.objects.filter(**conditions)
+            shifters.update(priority=F('priority') + delta)
+
+            FeatureRequest.objects.filter(pk=self.pk).update(priority=priority)
+            self.refresh_from_db()

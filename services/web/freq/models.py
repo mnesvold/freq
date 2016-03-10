@@ -74,3 +74,13 @@ class FeatureRequest(models.Model):
 
             FeatureRequest.objects.filter(pk=self.pk).update(priority=priority)
             self.refresh_from_db()
+
+    def delete(self, *args, **kwargs):
+        priority = self.priority
+        client = self.client
+        with transaction.atomic():
+            super().delete(*args, **kwargs)
+            reqs = FeatureRequest.objects.filter(
+                    client = client,
+                    priority__gt = priority)
+            reqs.update(priority=F('priority') - 1)

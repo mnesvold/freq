@@ -49,6 +49,16 @@ class ModelTests(TestCase):
         priorities = self._priorities_of(originals)
         self.assertEqual(priorities, (1, 4, 2, 3, 5))
 
+    def test_priority_on_delete(self):
+        requests = self._create_requests(5)
+        requests[2].delete()
+        requests[2] = None
+
+        self._refresh(requests)
+
+        priorities = self._priorities_of(requests)
+        self.assertEqual(priorities, (1, 2, None, 3, 4))
+
     def _create_request(self, priority):
         n = FeatureRequest.objects.count()
         return FeatureRequest.objects.create(

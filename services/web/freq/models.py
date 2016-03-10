@@ -56,21 +56,13 @@ class FeatureRequest(models.Model):
             super().save(*args, **kwargs)
             self.refresh_from_db()
 
-            conditions = {
-                'client': self.client,
-                'priority__gte': priority
-            }
+            client = self.client
             if old_priority is None:
-                delta = 1
+                self._shift_priorities(client, priority, None, 1)
             elif old_priority > priority:
-                conditions['priority__lte'] = old_priority
-                delta = 1
+                self._shift_priorities(client, priority, old_priority, 1)
             else:
-                conditions['priority__lte'] = conditions['priority__gte']
-                conditions['priority__gte'] = old_priority
-                delta = -1
-            shifters = FeatureRequest.objects.filter(**conditions)
-            shifters.update(priority=F('priority') + delta)
+                self._shift_priorities(client, old_priority, priority, -1)
 
             FeatureRequest.objects.filter(pk=self.pk).update(priority=priority)
             self.refresh_from_db()
@@ -80,7 +72,14 @@ class FeatureRequest(models.Model):
         client = self.client
         with transaction.atomic():
             super().delete(*args, **kwargs)
-            reqs = FeatureRequest.objects.filter(
-                    client = client,
-                    priority__gt = priority)
-            reqs.update(priority=F('priority') - 1)
+            self._shift_priorities(client, priority, None, -1)
+
+    def _shift_priorities(self, client, gte, lte, delta):
+        conditions = {
+            'client': client,
+            'priority__gte': gte,
+        }
+        if lte is not None:
+            conditions['priority__lte'] = lte
+        reqs = FeatureRequest.objects.filter(**conditions)
+        reqs.update(priority=F('priority') + delta)

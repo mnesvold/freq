@@ -9,7 +9,7 @@ class ModelTests(TestCase):
         self.dummy_area = ProductArea.objects.create(title='Reports')
 
     def test_priority_collision_new(self):
-        originals = (self._create_request(1), self._create_request(2))
+        originals = self._create_requests(2)
         collision = self._create_request(1)
 
         tuple(o.refresh_from_db() for o in originals)
@@ -20,33 +20,33 @@ class ModelTests(TestCase):
         self.assertEqual(collision.priority, 1)
 
     def test_priority_collision_higher_priority(self):
-        originals = tuple(self._create_request(p + 1) for p in range(5))
+        originals = self._create_requests(5)
 
         # sanity check
-        priorities = tuple(o.priority for o in originals)
+        priorities = self._priorities_of(originals)
         self.assertEqual(priorities, (1, 2, 3, 4, 5))
 
         originals[3].priority = 1
         originals[3].save()
 
-        tuple(o.refresh_from_db() for o in originals)
+        self._refresh(originals)
 
-        priorities = tuple(o.priority for o in originals)
+        priorities = self._priorities_of(originals)
         self.assertEqual(priorities, (2, 3, 4, 1, 5))
 
     def test_priority_collision_lower_priority(self):
-        originals = tuple(self._create_request(p + 1) for p in range(5))
+        originals = self._create_requests(5)
 
         # sanity check
-        priorities = tuple(o.priority for o in originals)
+        priorities = self._priorities_of(originals)
         self.assertEqual(priorities, (1, 2, 3, 4, 5))
 
         originals[1].priority = 4
         originals[1].save()
 
-        tuple(o.refresh_from_db() for o in originals)
+        self._refresh(originals)
 
-        priorities = tuple(o.priority for o in originals)
+        priorities = self._priorities_of(originals)
         self.assertEqual(priorities, (1, 4, 2, 3, 5))
 
     def _create_request(self, priority):
@@ -56,3 +56,12 @@ class ModelTests(TestCase):
                 client=self.dummy_client,
                 priority=priority,
                 product_area=self.dummy_area)
+
+    def _create_requests(self, n):
+        return [self._create_request(p + 1) for p in range(n)]
+
+    def _refresh(self, reqs):
+        tuple(r.refresh_from_db() for r in reqs if r)
+
+    def _priorities_of(self, reqs):
+        return tuple(r.priority if r else None for r in reqs)

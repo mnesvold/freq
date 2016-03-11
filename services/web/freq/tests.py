@@ -59,16 +59,37 @@ class ModelTests(TestCase):
         priorities = self._priorities_of(requests)
         self.assertEqual(priorities, (1, 2, None, 3, 4))
 
-    def _create_request(self, priority):
+    def test_priority_change_client(self):
+        a_client = self.dummy_client
+        b_client = Client.objects.create(title='Banana Corp.')
+        a_reqs = self._create_requests(5, a_client)
+        b_reqs = self._create_requests(5, b_client)
+
+        # sanity check
+        self._refresh(a_reqs)
+        self.assertEqual(self._priorities_of(a_reqs), (1, 2, 3, 4, 5))
+        self.assertEqual(self._priorities_of(b_reqs), (1, 2, 3, 4, 5))
+
+        a_reqs[2].client = b_client
+        a_reqs[2].save()
+
+        self._refresh(a_reqs)
+        self._refresh(b_reqs)
+
+        self.assertEqual(self._priorities_of(a_reqs), (1, 2, 3, 3, 4))
+        self.assertEqual(self._priorities_of(b_reqs), (1, 2, 4, 5, 6))
+
+    def _create_request(self, priority, client=None):
+        client = client or self.dummy_client
         n = FeatureRequest.objects.count()
         return FeatureRequest.objects.create(
                 title='Request #%d' % (n + 1,),
-                client=self.dummy_client,
+                client=client,
                 priority=priority,
                 product_area=self.dummy_area)
 
-    def _create_requests(self, n):
-        return [self._create_request(p + 1) for p in range(n)]
+    def _create_requests(self, n, client=None):
+        return [self._create_request(p + 1, client) for p in range(n)]
 
     def _refresh(self, reqs):
         tuple(r.refresh_from_db() for r in reqs if r)

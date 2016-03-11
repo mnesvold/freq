@@ -43,21 +43,26 @@ class FeatureRequest(models.Model):
 
     def save(self, *args, **kwargs):
         try:
-            old_priority = (FeatureRequest.objects
-                    .only('priority')
-                    .get(pk=self.pk)
-                    .priority)
+            old_req = (FeatureRequest.objects
+                    .only('priority', 'client')
+                    .get(pk=self.pk))
         except FeatureRequest.DoesNotExist:
-            old_priority = None
+            old_client = old_priority = None
+        else:
+            old_priority = old_req.priority
+            old_client = old_req.client
         priority = self.priority
         self.priority = 0
+        client = self.client
 
         with transaction.atomic():
             super().save(*args, **kwargs)
             self.refresh_from_db()
 
-            client = self.client
-            if old_priority is None:
+            if old_client and old_client != client:
+                self._shift_priorities(old_client, old_priority, None, -1)
+                self._shift_priorities(client, priority, None, 1)
+            elif old_priority is None:
                 self._shift_priorities(client, priority, None, 1)
             elif old_priority > priority:
                 self._shift_priorities(client, priority, old_priority, 1)

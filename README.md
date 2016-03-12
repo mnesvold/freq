@@ -1,7 +1,7 @@
 # freq
 Feature request tracking
 
-## Getting started
+## Getting started locally
 
 You'll need [Docker](https://docs.docker.com/mac/) and [Docker
 Compose](https://docs.docker.com/compose/install/). If you don't want to
@@ -17,6 +17,7 @@ $ ./bin/mkvenv # (optional -- installs docker-compose to a virtual env.)
 $ source venv/bin/activate # (optional -- activates the virtual env.)
 $ docker-compose run --rm web python manage.py migrate
 $ docker-compose run --rm web python manage.py loaddata /srv/fixtures/dev.json
+$ docker-compose run --rm web python manage.py collectstatic --noinput
 $ docker-compose up
 ```
 
